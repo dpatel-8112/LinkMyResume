@@ -1,17 +1,17 @@
-// src/app/api/resumes/[id]/route.ts
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
 
+/**
+ * Handles PATCH requests to update the fileName of a specific resume.
+ */
 export async function PATCH(
-    req: Request,
+    req: NextRequest,
     { params }: { params: { id: string } }
 ) {
     const session = await getServerSession(authOptions);
 
-    // 1. Check for user authentication
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -20,11 +20,10 @@ export async function PATCH(
         const resumeId = params.id;
         const { newFileName } = await req.json();
 
-        if (!newFileName || typeof newFileName !== 'string') {
+        if (!newFileName || typeof newFileName !== 'string' || newFileName.trim() === '') {
             return NextResponse.json({ error: 'Invalid file name provided.' }, { status: 400 });
         }
 
-        // 2. Find the original resume to verify ownership
         const originalResume = await prisma.resume.findUnique({
             where: { id: resumeId },
         });
@@ -33,12 +32,10 @@ export async function PATCH(
             return NextResponse.json({ error: 'Resume not found.' }, { status: 404 });
         }
 
-        // 3. CRITICAL: Ensure the logged-in user owns this resume
         if (originalResume.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden. You do not own this resume.' }, { status: 403 });
         }
 
-        // 4. Update the resume with the new file name
         const updatedResume = await prisma.resume.update({
             where: { id: resumeId },
             data: {
