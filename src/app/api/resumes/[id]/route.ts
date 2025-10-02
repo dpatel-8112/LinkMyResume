@@ -7,10 +7,9 @@ import prisma from '@/lib/prisma';
  * Handles PATCH requests to update the fileName of a specific resume.
  */
 export async function PATCH(
-    req: NextRequest,
-    // The second argument is the context, which contains the route params.
-    // We type it explicitly here to resolve the build error.
-    context: { params: { id: string } }
+    req: NextRequest
+    // We are removing the second 'context' parameter to avoid the build error
+    // and will get the ID from the URL instead.
 ) {
     const session = await getServerSession(authOptions);
 
@@ -19,8 +18,11 @@ export async function PATCH(
     }
 
     try {
-        // Get the ID from the context's params object
-        const resumeId = context.params.id;
+        // FIX: Get the ID directly from the request URL
+        const url = new URL(req.url);
+        const pathSegments = url.pathname.split('/');
+        const resumeId = pathSegments[pathSegments.length - 1];
+
         const { newFileName } = await req.json();
 
         if (!newFileName || typeof newFileName !== 'string' || newFileName.trim() === '') {
