@@ -1,20 +1,27 @@
-// src/app/api/upload/route.ts
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import prisma from '@/lib/prisma';
 
-// S3 client configuration
+// Check for environment variables to ensure they are defined and satisfy TypeScript.
+const accessKeyId = process.env.S3_BUCKET_ACCESS_KEY_ID;
+const secretAccessKey = process.env.S3_BUCKET_ACCESS_KEY;
+const bucketName = process.env.S3_BUCKET_NAME;
+const supabaseUrl = process.env.SUPABASE_URL;
+
+if (!accessKeyId || !secretAccessKey || !bucketName || !supabaseUrl) {
+    throw new Error("Missing S3/Supabase environment variables.");
+}
+
+// S3 client configuration using your specified environment variables
 const s3Client = new S3Client({
     region: 'ap-south-1',
     endpoint: `https://hsuajcyxqvlcpeqtjwml.supabase.co/storage/v1/s3`,
     credentials: {
-        accessKeyId: process.env.S3_BUCKET_ACCESS_KEY_ID,
-        secretAccessKey: process.env.S3_BUCKET_ACCESS_KEY!,
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
     },
-    // FIX: Add this line
     forcePathStyle: true,
 });
 
@@ -35,7 +42,6 @@ export async function POST(req: Request) {
 
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const fileName = `${Date.now()}-${file.name}`;
-        const bucketName = process.env.S3_BUCKET_NAME!;
 
         const command = new PutObjectCommand({
             Bucket: bucketName,
@@ -46,8 +52,7 @@ export async function POST(req: Request) {
 
         await s3Client.send(command);
 
-        const projectUrl = process.env.SUPABASE_URL!;
-        const publicUrl = `${projectUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
+        const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
 
         const newResume = await prisma.resume.create({
             data: {
@@ -64,3 +69,4 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal server error during upload.' }, { status: 500 });
     }
 }
+
