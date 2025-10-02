@@ -8,7 +8,9 @@ import prisma from '@/lib/prisma';
  */
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    // The second argument is the context, which contains the route params.
+    // We type it explicitly here to resolve the build error.
+    context: { params: { id: string } }
 ) {
     const session = await getServerSession(authOptions);
 
@@ -17,7 +19,8 @@ export async function PATCH(
     }
 
     try {
-        const resumeId = params.id;
+        // Get the ID from the context's params object
+        const resumeId = context.params.id;
         const { newFileName } = await req.json();
 
         if (!newFileName || typeof newFileName !== 'string' || newFileName.trim() === '') {
