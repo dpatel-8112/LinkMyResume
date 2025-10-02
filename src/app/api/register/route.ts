@@ -31,10 +31,9 @@ export async function POST(req: Request) {
             },
         });
 
-        // Don't send the password hash back to the client
-        const { passwordHash, ...userWithoutPassword } = newUser;
+        delete (newUser as { passwordHash?: string }).passwordHash;
+        return NextResponse.json(newUser, { status: 201 });
 
-        return NextResponse.json(userWithoutPassword, { status: 201 });
     } catch (error) {
         console.error('Registration error:', error);
         return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });

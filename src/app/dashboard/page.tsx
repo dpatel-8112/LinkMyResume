@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 // Define a type for our resume object
 type Resume = {
@@ -112,8 +111,12 @@ export default function Dashboard() {
             setFile(null);
             const fileInput = document.getElementById('resume-upload') as HTMLInputElement;
             if (fileInput) fileInput.value = "";
-        } catch (err: any) {
-            setError(err.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError('An unexpected error occurred.');
+            }
         } finally {
             setIsUploading(false);
         }
@@ -187,7 +190,7 @@ export default function Dashboard() {
                     <div className="w-full p-8 bg-white rounded-xl shadow-lg">
                         <h2 className="text-2xl font-bold text-gray-900">Your Uploaded Resumes</h2>
                         <div className="mt-6">
-                            {isLoadingList ? (<p className="text-center text-gray-500">Loading your resumes...</p>) : resumes.length === 0 ? (<p className="text-center text-gray-500">You haven't uploaded any resumes yet.</p>) : (
+                            {isLoadingList ? (<p className="text-center text-gray-500">Loading your resumes...</p>) : resumes.length === 0 ? (<p className="text-center text-gray-500">You haven&apos;t uploaded any resumes yet..</p>) : (
                                 <ul className="divide-y divide-gray-200">
                                     {resumes.map((resume) => (
                                         <li key={resume.id} className="py-4">

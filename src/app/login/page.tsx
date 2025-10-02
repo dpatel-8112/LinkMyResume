@@ -29,7 +29,7 @@ export default function LoginPage() {
                 // Redirect to the dashboard on successful login
                 router.push('/dashboard');
             }
-        } catch (err) {
+        } catch {
             setError('An unexpected error occurred.');
         }
     };
@@ -87,7 +87,7 @@ export default function LoginPage() {
                     </button>
                 </form>
                 <p className="text-sm text-center text-gray-500">
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Link href="/register" className="font-medium text-violet-600 hover:text-violet-500">
                         Sign up
                     </Link>
